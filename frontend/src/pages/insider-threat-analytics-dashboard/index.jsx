@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SecuritySidebar from '../../components/ui/SecuritySidebar';
 import ThreatContextHeader from '../../components/ui/ThreatContextHeader';
-import AlertNotificationOverlay from '../../../../TrustShield-Sentinel/src/components/ui/AlertNotificationOverlay';
+import AlertNotificationOverlay from '../../../../frontend/src/components/ui/AlertNotificationOverlay';
 import MetricsStrip from './components/MetricsStrip';
 import DashboardFilters from './components/DashboardFilters';
 import UserRiskMatrix from './components/UserRiskMatrix';
