@@ -118,15 +118,47 @@ app.post("/api/alerts/:id/unmask", (req, res) => {
 });
 
 // fetch dashboard aggregate
+// fetch dashboard aggregate
 app.get("/api/dashboard", (req, res) => {
   const total = alerts.length;
+
+  // counts per risk level
   const counts = alerts.reduce((acc, a) => {
     acc[a.riskLevel] = (acc[a.riskLevel] || 0) + 1;
     return acc;
   }, {});
+
+  // total high-risk users
+  const highRiskUsers = alerts.filter(
+    (a) => a.riskLevel === "high" || a.riskLevel === "critical"
+  );
+
+  // detection rate = alerts / total employees (%)
+  const detectionRate =
+    employees.length > 0
+      ? ((alerts.length / employees.length) * 100).toFixed(2)
+      : 0;
+
+  // detailed alerts view (map to frontend needs)
+  const detailedAlerts = alerts.map((a) => {
+    const emp = employees.find((e) => e.id === a.eventRef.employeeId);
+    return {
+      userName: emp ? emp.name : "Anonymous",
+      department: emp ? emp.role : "Unknown",
+      riskLevel: a.riskLevel,
+      riskScore: a.riskScore,
+      suspiciousActivities: a.reasons || [],
+      date: a.createdAt,
+      time: new Date(a.createdAt).toLocaleTimeString(),
+    };
+  });
+
   res.json({
     totalAlerts: total,
     counts,
+    highRiskUsers: highRiskUsers.length,
+    detectionRate: `${detectionRate}%`,
+    detailedAlerts,
     lastUpdated: new Date().toISOString(),
   });
 });
