@@ -139,7 +139,7 @@ app.post("/api/events", (req, res) => {
   // recompute alerts
   buildAlerts();
   res.json({ ok: true, evt });
-});
+});git
 
 // static mock data endpoints for debugging
 app.get("/api/events", (req, res) => res.json({ events }));
