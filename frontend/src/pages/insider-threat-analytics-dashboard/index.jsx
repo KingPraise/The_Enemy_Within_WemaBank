@@ -9,6 +9,7 @@ import UserInvestigationList from "./components/UserInvestigationList";
 import BehavioralTimeline from "./components/BehavioralTimeline";
 import Icon from "../../components/AppIcon";
 import { fetchDashboard, fetchAlerts } from "../../utils/api";
+import { useNavigate } from 'react-router-dom';
 
 const InsiderThreatAnalyticsDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Start collapsed by default
@@ -54,7 +55,7 @@ const InsiderThreatAnalyticsDashboard = () => {
     },
     {
       id: "user-002",
-      name: "Yewande Akilu",
+      name: "Employee-005",
       department: "Finance",
       riskScore: 72,
       behavioralDeviation: 65,
@@ -75,7 +76,7 @@ const InsiderThreatAnalyticsDashboard = () => {
     },
     {
       id: "user-003",
-      name: "Eniola Oladeji",
+      name: "Employee-005",
       department: "HR",
       riskScore: 68,
       behavioralDeviation: 55,
@@ -150,7 +151,7 @@ const InsiderThreatAnalyticsDashboard = () => {
       severity: "high",
       isAnomaly: true,
       timestamp: "2025-09-09T22:10:00Z",
-      user: "Yewande Akilu",
+      user: "Employee-005",
       source: "File Server",
       riskScore: 78,
       correlatedEvents: ["event-001"],
@@ -159,12 +160,12 @@ const InsiderThreatAnalyticsDashboard = () => {
       id: "event-003",
       title: "Unusual Login Location",
       description:
-        "Eniola Oladeji logged in from an unusual geographic location",
+        "Employee-005 logged in from an unusual geographic location",
       eventType: "login",
       severity: "medium",
       isAnomaly: true,
       timestamp: "2025-09-09T21:45:00Z",
-      user: "Eniola Oladeji",
+      user: "Employee-005",
       source: "Authentication Server",
       riskScore: 65,
       location: "Oyo, Nigeria",
@@ -194,6 +195,75 @@ const InsiderThreatAnalyticsDashboard = () => {
       source: "Access Control System",
       riskScore: 72,
     },
+    {
+      id: "event-006",
+      title: "Suspicious Database Access",
+      description:
+        "Ayokunle Olayinka accessed customer database outside normal business hours with unusual query patterns",
+      eventType: "data_access",
+      severity: "critical",
+      isAnomaly: true,
+      timestamp: "2025-09-09T22:15:00Z",
+      user: "Ayokunle Olayinka",
+      source: "Database Server",
+      riskScore: 85,
+      ipAddress: "192.168.1.45",
+      deviceInfo: "MacBook Pro",
+      location: "Lagos, Nigeria",
+      // correlatedEvents: ["event-002", "event-003"],
+    },
+    {
+      id: "event-007",
+      title: "Large File Download",
+      description: "Multiple large files downloaded to external device",
+      eventType: "file_transfer",
+      severity: "high",
+      isAnomaly: true,
+      timestamp: "2025-09-09T22:10:00Z",
+      user: "Employee-005",
+      source: "File Server",
+      riskScore: 78,
+      // correlatedEvents: ["event-001"],
+    },
+    {
+      id: "event-008",
+      title: "Unusual Login Location",
+      description:
+        "Employee-005 logged in from an unusual geographic location",
+      eventType: "login",
+      severity: "medium",
+      isAnomaly: true,
+      timestamp: "2025-09-09T21:45:00Z",
+      user: "Employee-005",
+      source: "Authentication Server",
+      riskScore: 65,
+      location: "Oyo, Nigeria",
+    },
+    {
+      id: "event-009",
+      title: "API Rate Limit Exceeded",
+      description: "Excessive API calls detected from user session",
+      eventType: "api_call",
+      severity: "medium",
+      isAnomaly: false,
+      timestamp: "2025-09-09T21:30:00Z",
+      user: "Employee-005",
+      source: "API Gateway",
+      riskScore: 45,
+    },
+    {
+      id: "event-010",
+      title: "Privilege Escalation Attempt",
+      description:
+        "User attempted to access resources beyond their permission level",
+      eventType: "privilege_change",
+      severity: "high",
+      isAnomaly: true,
+      timestamp: "2025-09-09T20:45:00Z",
+      user: "Employee-005",
+      source: "Access Control System",
+      riskScore: 72,
+    },
   ];
 
   const mapAlertsToUsers = (alerts) => {
@@ -217,6 +287,19 @@ const InsiderThreatAnalyticsDashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [alerts, setAlerts] = useState([]);
   const [backendUsers, setBackendUsers] = useState([]);
+  const [overlayVisible, setOverlayVisible] = useState(true);
+  const navigate = useNavigate();
+
+  const handleDismissOverlay = () => {
+    // Only dismiss the overlay UI; keep alerts and user lists intact
+    setOverlayVisible(false);
+  };
+
+  useEffect(() => {
+    const reopen = () => setOverlayVisible(true);
+    window.addEventListener('reopenAlerts', reopen);
+    return () => window.removeEventListener('reopenAlerts', reopen);
+  }, []);
 
   // Filter users based on current filters
   const filteredUsers = mockUsers?.filter((user) => {
@@ -299,21 +382,53 @@ const InsiderThreatAnalyticsDashboard = () => {
         const data = await fetchAlerts();
         if (data && data.alerts) {
           // Map backend alerts → UI-friendly alerts
-          const mapped = data.alerts.map((a) => ({
-            id: a.alertId, // use backend's alertId
-            title: `Risk Alert (${a.riskLevel.toUpperCase()})`,
-            message: a.reasons?.join(", ") || "Unusual activity detected",
-            severity: a.riskLevel || "medium",
-            timestamp: a.createdAt,
-            metadata: {
-              source: a.employeeRole,
-              affectedSystems: a.eventRef?.type || "System",
-            },
-            actions: {
-              view: true,
-              investigate: true,
-            },
-          }));
+            const reasonMap = {
+            massive_data_exfiltration:
+              "Massive data transfer detected (>1GB)",
+            suspicious_document_capture:
+              "Multiple screenshots of sensitive documents",
+            screenshot_taken: "Screenshot captured",
+            unusual_access_pattern:
+              "Access to resources outside normal role scope",
+            bulk_download: "High-volume file downloads",
+            new_ip_or_device: "Login from new IP or device",
+            login_outside_hours: "Login outside normal hours",
+            large_transaction: "Large transaction approval",
+            multiple_recent_events: "Multiple anomalies in short time",
+              // newly added reason codes
+              usb_large_copy: "Large copy to removable media",
+              token_export_detected: "Export of credentials or tokens detected",
+              anonymizing_tunnel_detected: "Connection to anonymizing network (Tor/VPN)",
+              archive_then_upload: "Archive created and quickly uploaded externally",
+              log_wipe_detected: "Audit/log deletion detected",
+              geo_mismatch: "Login geolocation mismatch",
+              file_write_spike: "Spike in file writes",
+              access_denied_spike: "Repeated access denied events",
+          };
+
+          const mapped = data.alerts.map((a) => {
+            const friendlyReasons = (a.reasons || []).map(
+              (r) => reasonMap[r] || r
+            );
+            return {
+              id: a.alertId, // use backend's alertId
+              title: `Risk Alert (${a.riskLevel.toUpperCase()})`,
+              message:
+                friendlyReasons.join("; ") || "Unusual activity detected",
+              severity: a.riskLevel || "medium",
+              timestamp: a.createdAt,
+              metadata: {
+                source: a.employeeRole,
+                affectedSystems: a.eventRef?.type || "System",
+              },
+              actions: {
+                view: true,
+                investigate: true,
+              },
+              // include original payload for drill-downs
+              raw: a,
+            };
+          });
           setAlerts(mapped);
         }
       } catch (err) {
@@ -321,6 +436,37 @@ const InsiderThreatAnalyticsDashboard = () => {
       }
     };
     loadAlerts();
+    // Subscribe to SSE for live updates
+    let sub = null;
+    try {
+      const { subscribeToAlerts } = require('../../utils/api');
+      sub = subscribeToAlerts((payload) => {
+        if (payload?.alerts) {
+          const mapped = payload.alerts.map((a) => {
+            const friendlyReasons = (a.reasons || []).map((r) => r);
+            return {
+              id: a.alertId,
+              title: `Risk Alert (${(a.riskLevel||'MED').toUpperCase()})`,
+              message: (a.reasons || []).join('; '),
+              severity: a.riskLevel || 'medium',
+              timestamp: a.createdAt,
+              metadata: { source: a.employeeRole },
+              actions: { view: true, investigate: true },
+              raw: a,
+            };
+          });
+          setAlerts(mapped);
+        }
+      });
+    } catch (err) {
+      // optional: SSE not supported in this environment
+    }
+
+    return () => {
+      try {
+        sub && sub.close && sub.close();
+      } catch (e) {}
+    };
   }, []);
 
   //Load alerts on mount and map them into users for investigation list
@@ -329,6 +475,17 @@ const InsiderThreatAnalyticsDashboard = () => {
       try {
         const data = await fetchAlerts();
         if (data?.alerts) {
+          const reasonMap = {
+            massive_data_exfiltration:
+              "Massive data transfer detected (>1GB)",
+            suspicious_document_capture:
+              "Multiple screenshots of sensitive documents",
+            screenshot_taken: "Screenshot captured",
+            unusual_access_pattern:
+              "Access to resources outside normal role scope",
+            bulk_download: "High-volume file downloads",
+          };
+
           const mapped = data.alerts.map((a) => ({
             id: a.alertId,
             name: `Employee-${a.employeeHash}`,
@@ -339,8 +496,10 @@ const InsiderThreatAnalyticsDashboard = () => {
             accessPrivilegeLevel: Math.max(20, 100 - a.riskScore), // fake scaling
             recentAnomalies: a.reasons?.map((r) => ({
               type: "anomaly",
-              description: r,
+              description: reasonMap[r] || r,
             })),
+            lastActivity: a.createdAt || new Date().toISOString(),
+            raw: a,
           }));
           setBackendUsers(mapped);
         }
@@ -362,7 +521,7 @@ const InsiderThreatAnalyticsDashboard = () => {
             name: alert.employeeHash, // anonymized ID
             department: alert.employeeRole,
             riskScore: alert.riskScore,
-            lastActivity: alert.createdAt,
+            lastActivity: alert.createdAt || new Date().toISOString(),
             anomalyCount: alert.reasons?.length || 0,
             recentAnomalies: alert.reasons?.map((r) => ({
               type: "behavior",
@@ -371,6 +530,7 @@ const InsiderThreatAnalyticsDashboard = () => {
             behavioralDeviation: alert.riskScore, // temp mapping
             accessPrivilegeLevel: Math.floor(Math.random() * 100), // temp
             dataAccessScore: Math.floor(Math.random() * 100), // temp
+            raw: alert,
           }));
           setInvestigationUsers(users);
         }
@@ -391,8 +551,18 @@ const InsiderThreatAnalyticsDashboard = () => {
   };
 
   const handleUserInvestigate = (user) => {
+    // Prefer to navigate with the original alert payload (`raw`) so Investigation has full context
+    const raw = user?.raw || user?.alert || null;
+    if (raw) {
+      const aid = raw.alertId || raw.id || user?.id;
+      navigate(`/investigation/${aid}`, { state: { raw } });
+      return;
+    }
+    if (user?.id) {
+      navigate(`/investigation/${user.id}`, { state: { user } });
+      return;
+    }
     console.log("Investigating user:", user);
-    // In a real app, this would navigate to investigation page
   };
 
   const handleEventClick = (event) => {
@@ -520,12 +690,15 @@ const InsiderThreatAnalyticsDashboard = () => {
         </div>
       </div>
       {/* Alert Notifications */}
-      <AlertNotificationOverlay
-        alerts={alerts}
-        onAlertClick={handleAlertClick}
-        maxVisible={3}
-        autoHideDelay={8000}
-      />
+      {overlayVisible && (
+        <AlertNotificationOverlay
+          alerts={alerts}
+          onAlertClick={handleAlertClick}
+          onDismissOverlay={handleDismissOverlay}
+          maxVisible={3}
+          autoHideDelay={8000000}
+        />
+      )}
     </div>
   );
 };
