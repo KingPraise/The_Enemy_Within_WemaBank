@@ -189,6 +189,11 @@ app.get('/api/stream/alerts', (req, res) => {
   });
 });
 
+// health check for orchestration
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', uptime: process.uptime(), now: new Date().toISOString() });
+});
+
 const logger = require('./logger');
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => logger.info(`TrustShield API running on http://localhost:${PORT}`));
