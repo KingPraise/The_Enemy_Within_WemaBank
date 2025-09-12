@@ -1,3 +1,4 @@
+
 node_modules
 npm-debug.log
 .env
@@ -5,5 +6,3 @@ npm-debug.log
 .git
 __tests__
 README.md
-package-lock.json
-data/*.json

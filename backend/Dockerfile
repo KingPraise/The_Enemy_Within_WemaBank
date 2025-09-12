@@ -14,7 +14,8 @@ WORKDIR /usr/src/app
 
 # Copy package files and install production dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+# Use npm install and omit dev deps to avoid strict lockfile requirements during container builds
+RUN npm install --omit=dev --no-audit --no-fund
 
 # Copy source
 COPY . .
