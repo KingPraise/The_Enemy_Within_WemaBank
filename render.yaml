@@ -1,11 +1,9 @@
 services:
   - type: web
     name: trustshield-backend
-    env: node
+    env: docker
     region: oregon
     branch: main
-    buildCommand: "npm ci"
-    startCommand: "npm run start:prod"
     root: "backend"
     plan: starter
     envVars:
